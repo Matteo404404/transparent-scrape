@@ -21,6 +21,17 @@ OPENSANCTIONS_EU_MEPS_CSV = (
 )
 INTEGRITY_WATCH_DATAHUB = "https://data.integritywatch.eu/"
 
+HTV_MEMBER_VOTES_URL = (
+    "https://github.com/HowTheyVote/data/releases/latest/download/member_votes.csv.gz"
+)
+HTV_MEMBERS_URL = "https://github.com/HowTheyVote/data/releases/latest/download/members.csv.gz"
+HTV_VOTES_URL = "https://github.com/HowTheyVote/data/releases/latest/download/votes.csv.gz"
+
+PARLTRACK_DUMPS_PAGE = "https://parltrack.eu/dumps"
+PARLTRACK_MEPS_DUMP = "https://parltrack.eu/dumps/ep_meps.json.zst"
+
+EPDB_API_BASE = "https://api.epdb.eu"
+
 
 def data_layout(root: Path) -> dict[str, Path]:
     """Standard data/raw and data/parsed paths under root."""

@@ -3,10 +3,13 @@ from transparent_scrape.sources import (
     ec_meetings,
     ep_api,
     ep_declarations,
+    epdb,
+    howtheyvote,
     integrity_watch,
     lobby_register,
     meps_declarations,
     opensanctions,
+    parltrack,
     wmm,
 )
 
@@ -15,9 +18,12 @@ __all__ = [
     "ec_meetings",
     "ep_api",
     "ep_declarations",
+    "epdb",
+    "howtheyvote",
     "integrity_watch",
     "lobby_register",
     "meps_declarations",
     "opensanctions",
+    "parltrack",
     "wmm",
 ]

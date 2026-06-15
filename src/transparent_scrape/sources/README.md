@@ -18,5 +18,8 @@ One Python file per public dataset. Each module should:
 | `appf.py` | Europarty funding (APPF) |
 | `opensanctions.py` | OpenSanctions eu_meps |
 | `integrity_watch.py` | Integrity Watch EU |
+| `howtheyvote.py` | HowTheyVote.eu roll-call exports (ODbL) |
+| `parltrack.py` | Parltrack bulk dumps (ODbL) |
+| `epdb.py` | EPDB Council/EP vote API probe |
 
 Add new files here and register in `__init__.py`. See [../docs/EXTENDING.md](../docs/EXTENDING.md).

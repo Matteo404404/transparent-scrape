@@ -11,10 +11,13 @@ from transparent_scrape.sources import (
     ec_meetings,
     ep_api,
     ep_declarations,
+    epdb,
+    howtheyvote,
     integrity_watch,
     lobby_register,
     meps_declarations,
     opensanctions,
+    parltrack,
     wmm,
 )
 
@@ -92,6 +95,27 @@ def run_sources(
         path = integrity_watch.fetch_status(parsed_dir)
         print(f"[tscrape] integrity_watch: done → {path.name}")
         results.append(RunResult("integrity_watch", [path], {}))
+
+    if "howtheyvote" in sources:
+        print("[tscrape] howtheyvote: downloading roll-call CSV + rebellion stats...")
+        path = howtheyvote.fetch_and_parse(parsed_dir, raw_dir, force=not opts.skip_existing)
+        print(f"[tscrape] howtheyvote: done → {path.name}")
+        results.append(RunResult("howtheyvote", [path], {}))
+
+    if "parltrack" in sources:
+        print("[tscrape] parltrack: dumps status + MEP index...")
+        paths = [
+            parltrack.fetch_dumps_status(parsed_dir),
+            parltrack.fetch_meps_index(parsed_dir, raw_dir, force=not opts.skip_existing),
+        ]
+        print(f"[tscrape] parltrack: done → {', '.join(p.name for p in paths)}")
+        results.append(RunResult("parltrack", paths, {}))
+
+    if "epdb" in sources:
+        print("[tscrape] epdb: probing Council/EP vote API...")
+        path = epdb.fetch_status(parsed_dir)
+        print(f"[tscrape] epdb: done → {path.name}")
+        results.append(RunResult("epdb", [path], {}))
 
     if "ec_meetings" in sources:
         print(f"[tscrape] ec_meetings: dataset {opts.ec_dataset}...")

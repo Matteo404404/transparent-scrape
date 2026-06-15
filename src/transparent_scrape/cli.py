@@ -9,10 +9,13 @@ from transparent_scrape.sources import (
     ec_meetings,
     ep_api,
     ep_declarations,
+    epdb,
+    howtheyvote,
     integrity_watch,
     lobby_register,
     meps_declarations,
     opensanctions,
+    parltrack,
     wmm,
 )
 
@@ -102,6 +105,30 @@ def _cmd_opensanctions_fetch(args: argparse.Namespace) -> None:
 def _cmd_integrity_watch_status(args: argparse.Namespace) -> None:
     root = _data_root(args)
     path = integrity_watch.fetch_status(root / "parsed")
+    print(f"wrote {path}")
+
+
+def _cmd_howtheyvote_fetch(args: argparse.Namespace) -> None:
+    root = _data_root(args)
+    path = howtheyvote.fetch_and_parse(root / "parsed", root / "raw", force=args.force)
+    print(f"wrote {path}")
+
+
+def _cmd_parltrack_status(args: argparse.Namespace) -> None:
+    root = _data_root(args)
+    path = parltrack.fetch_dumps_status(root / "parsed")
+    print(f"wrote {path}")
+
+
+def _cmd_parltrack_meps(args: argparse.Namespace) -> None:
+    root = _data_root(args)
+    path = parltrack.fetch_meps_index(root / "parsed", root / "raw", force=args.force)
+    print(f"wrote {path}")
+
+
+def _cmd_epdb_status(args: argparse.Namespace) -> None:
+    root = _data_root(args)
+    path = epdb.fetch_status(root / "parsed")
     print(f"wrote {path}")
 
 
@@ -229,6 +256,37 @@ def _cmd_postprocess(args: argparse.Namespace) -> None:
     else:
         print("[tscrape] postprocess: skip integrity_watch (already present)")
 
+    htv_path = parsed / "howtheyvote" / "voting_summary.json"
+    if args.force or not htv_path.exists():
+        print("[tscrape] postprocess: HowTheyVote roll-call summary...")
+        try:
+            howtheyvote.fetch_and_parse(parsed, raw, force=args.force)
+        except Exception as exc:
+            print(f"[tscrape] postprocess: howtheyvote skipped ({exc})")
+    else:
+        print("[tscrape] postprocess: skip howtheyvote (already present)")
+
+    pt_path = parsed / "parltrack" / "meps_index.json"
+    if args.force or not pt_path.exists():
+        print("[tscrape] postprocess: Parltrack MEP index...")
+        try:
+            parltrack.fetch_dumps_status(parsed)
+            parltrack.fetch_meps_index(parsed, raw, force=args.force)
+        except Exception as exc:
+            print(f"[tscrape] postprocess: parltrack skipped ({exc})")
+    else:
+        print("[tscrape] postprocess: skip parltrack (already present)")
+
+    epdb_path = parsed / "epdb" / "status.json"
+    if args.force or not epdb_path.exists():
+        print("[tscrape] postprocess: EPDB API probe...")
+        try:
+            epdb.fetch_status(parsed)
+        except Exception as exc:
+            print(f"[tscrape] postprocess: epdb skipped ({exc})")
+    else:
+        print("[tscrape] postprocess: skip epdb (already present)")
+
     if args.conflict_pdfs:
         print("[tscrape] postprocess: conflict PDFs (missing text only, no API re-fetch)...")
         stats = meps_declarations.refresh_missing_pdfs(
@@ -338,6 +396,29 @@ def main(argv: list[str] | None = None) -> None:
     p_iws = iw_sub.add_parser("status")
     p_iws.add_argument("--out", default="data")
     p_iws.set_defaults(func=_cmd_integrity_watch_status)
+
+    p_htv = sub.add_parser("howtheyvote", help="HowTheyVote.eu roll-call exports (ODbL)")
+    htv_sub = p_htv.add_subparsers(dest="htv_cmd", required=True)
+    p_htvf = htv_sub.add_parser("fetch")
+    p_htvf.add_argument("--out", default="data")
+    p_htvf.add_argument("--force", action="store_true")
+    p_htvf.set_defaults(func=_cmd_howtheyvote_fetch)
+
+    p_pt = sub.add_parser("parltrack", help="Parltrack dumps (ODbL)")
+    pt_sub = p_pt.add_subparsers(dest="pt_cmd", required=True)
+    p_pts = pt_sub.add_parser("status")
+    p_pts.add_argument("--out", default="data")
+    p_pts.set_defaults(func=_cmd_parltrack_status)
+    p_ptm = pt_sub.add_parser("meps")
+    p_ptm.add_argument("--out", default="data")
+    p_ptm.add_argument("--force", action="store_true")
+    p_ptm.set_defaults(func=_cmd_parltrack_meps)
+
+    p_epdb = sub.add_parser("epdb", help="EPDB Council/EP vote API probe")
+    epdb_sub = p_epdb.add_subparsers(dest="epdb_cmd", required=True)
+    p_epdbs = epdb_sub.add_parser("status")
+    p_epdbs.add_argument("--out", default="data")
+    p_epdbs.set_defaults(func=_cmd_epdb_status)
 
     p_decl = sub.add_parser("declarations", help="MEP conflict-of-interest declarations")
     decl_sub = p_decl.add_subparsers(dest="decl_cmd", required=True)

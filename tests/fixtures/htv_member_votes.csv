@@ -1,0 +1,7 @@
+vote_id,member_id,position,country_code,group_code
+100,10,FOR,DEU,PPE
+100,11,FOR,DEU,PPE
+100,12,AGAINST,DEU,PPE
+101,10,FOR,DEU,PPE
+101,11,AGAINST,DEU,PPE
+101,12,FOR,DEU,PPE
