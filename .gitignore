@@ -1,0 +1,45 @@
+# =============================================================================
+# transparent-scrape — .gitignore
+# Library repo: commit code + tests + docs only.
+# Downloaded data stays local under data/ (or your project's data root).
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# --- Downloaded / parsed data (always regenerate) ---
+data/
+example-data/
+scratch/
+output/
+
+# --- Secrets ---
+.env
+.env.*
+*.pem
+credentials.json
+
+# --- Local notes ---
+*.local.md
+PLAN.md
+notes/
+docs/internal/
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

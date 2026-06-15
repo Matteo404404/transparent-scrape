@@ -1,0 +1,31 @@
+{
+  "data": [
+    {
+      "id": "eli/dl/doc/DCI-TEST-2026-01-01-000001",
+      "identifier": "DCI-TEST-2026-01-01-000001",
+      "type": "Work",
+      "document_date": "2026-01-01",
+      "awarenessOfConflict": false,
+      "work_type": "def/ep-document-types/MEMBER_DECLARATION_INTEREST_CONFLICT",
+      "refers_to": ["eli/dl/proc/2025-0001"],
+      "title_dcterms": {"en": "Declaration on awareness of conflicts of interest - Test MEP"},
+      "workHadParticipation": [
+        {
+          "had_participant_person": ["person/96761"],
+          "participation_role": "def/ep-roles/AUTHOR",
+          "inCapacityOf": {"capacityRole": "def/ep-roles/RAPPORTEUR_SHADOW_OPINION"}
+        }
+      ],
+      "is_realized_by": [
+        {
+          "is_embodied_by": [
+            {
+              "is_exemplified_by": "distribution/doc/DCI-TEST-2026-01-01-000001_en.pdf",
+              "format": "http://publications.europa.eu/resource/authority/file-type/PDF"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

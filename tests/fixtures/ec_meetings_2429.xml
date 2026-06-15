@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meetings file_generated_on="2026-06-13">
+  <meeting>
+    <cabinet>Cabinet of Commissioner Test</cabinet>
+    <date>2026-06-11</date>
+    <location>Brussels</location>
+    <subject>Test subject</subject>
+    <entities>
+      <entity><name>Test Org</name><id>123456789012-99</id></entity>
+    </entities>
+    <representatives>
+      <representative><name>Jane Doe</name><title>Commissioner</title></representative>
+    </representatives>
+  </meeting>
+</meetings>

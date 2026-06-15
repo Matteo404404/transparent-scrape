@@ -1,0 +1,21 @@
+{
+  "identifier": "28219",
+  "label": "Daniel CASPARY",
+  "hasMembership": [
+    {
+      "membershipClassification": "def/ep-entities/EU_INSTITUTION",
+      "organization": "org/ep-10",
+      "memberDuring": {"startDate": "2024-07-16", "endDate": "2026-02-28"}
+    },
+    {
+      "membershipClassification": "def/ep-entities/EU_POLITICAL_GROUP",
+      "organization": "org/7018",
+      "memberDuring": {"startDate": "2024-07-16", "endDate": "2026-02-28"}
+    },
+    {
+      "membershipClassification": "def/ep-entities/NATIONAL_POLITICAL_GROUP",
+      "organization": "org/6726",
+      "memberDuring": {"startDate": "2024-07-16", "endDate": "2026-02-28"}
+    }
+  ]
+}
