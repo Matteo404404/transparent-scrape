@@ -114,6 +114,54 @@ Checks datahub availability; full ingest when API is stable.
 
 ---
 
+## `howtheyvote` — HowTheyVote.eu roll-call exports
+
+| | |
+|--|--|
+| **CLI** | `tscrape howtheyvote fetch` |
+| **License** | ODbL 1.0 |
+| **Raw** | `raw/howtheyvote/*.csv.gz` |
+| **Parsed** | `parsed/howtheyvote/voting_summary.json` |
+
+Per-MEP rebellion counts (% votes against group majority). Used by eu-parl-observatory analytics.
+
+---
+
+## `parltrack` — Parltrack dumps
+
+| | |
+|--|--|
+| **CLI** | `tscrape parltrack status`, `tscrape parltrack meps` |
+| **License** | ODbL 1.0 |
+| **Raw** | `raw/parltrack/ep_meps.json.zst` |
+| **Parsed** | `parsed/parltrack/meps_index.json`, `parsed/parltrack/dumps_status.json` |
+
+Requires `zstd` on PATH for MEP index decompress.
+
+---
+
+## `epdb` — EPDB vote API probe
+
+| | |
+|--|--|
+| **CLI** | `tscrape epdb status` |
+| **Parsed** | `parsed/epdb/status.json` |
+
+Probes `api.epdb.eu` reachability. Full vote ingest deferred until stable documented endpoints.
+
+---
+
+## Health check
+
+```bash
+tscrape audit --out data
+tscrape sources list -v
+```
+
+`audit` reports conflict PDF coverage, missing APPF years, and which parsed JSON files exist.
+
+---
+
 ## Orchestration
 
 ### `tscrape run`

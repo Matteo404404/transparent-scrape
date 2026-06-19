@@ -84,7 +84,18 @@ tscrape postprocess --out "$DATA_ROOT" --conflict-pdfs
 | `ec_meetings` | `tscrape ec-meetings fetch` | Commission lobby meeting logs |
 | `appf` | `tscrape appf fetch` | Europarty funding (APPF) |
 | `opensanctions` | `tscrape opensanctions fetch` | OpenSanctions `eu_meps` bulk |
+| `howtheyvote` | `tscrape howtheyvote fetch` | Roll-call rebellion stats (ODbL) |
+| `parltrack` | `tscrape parltrack status`, `tscrape parltrack meps` | MEP index + dump freshness (ODbL) |
+| `epdb` | `tscrape epdb status` | Council/EP vote API probe |
 | `integrity_watch` | `tscrape integrity-watch status` | Integrity Watch datahub probe |
+
+**Inspect what you have:**
+
+```bash
+tscrape audit --out data
+tscrape sources list
+tscrape sources list --status probe
+```
 
 Full reference: [docs/MODULES.md](docs/MODULES.md).
 

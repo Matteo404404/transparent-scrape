@@ -283,7 +283,7 @@ def audit_gaps(parsed_dir: Path, *, term: int = EP_TERM_DEFAULT) -> dict[str, An
         if not path.stem.isdigit():
             continue
         for decl in load_json(path).get("declarations") or []:
-            if decl.get("pdf_url") and not (decl.get("pdf_text") or "").strip():
+            if decl.get("pdf_url") and len((decl.get("pdf_text") or "").strip()) <= 100:
                 conflict_pdfs_missing += 1
 
     return {

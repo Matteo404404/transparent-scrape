@@ -1,0 +1,9 @@
+#!/bin/sh
+# Strip AI co-author trailers before commit is finalized.
+# Enable once per clone: git config core.hooksPath .githooks
+msgfile="$1"
+[ -f "$msgfile" ] || exit 0
+sed -i '/^Co-authored-by: Cursor <cursoragent@cursor.com>$/d' "$msgfile"
+sed -i '/^Co-authored-by:.*[Cc]ursor/d' "$msgfile"
+sed -i '/^Co-authored-by:.*[Cc]opilot/d' "$msgfile"
+sed -i '/^Co-authored-by:.*[Aa]nthropic/d' "$msgfile"

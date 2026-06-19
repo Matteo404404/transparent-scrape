@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from transparent_scrape.core.audit import audit_data_root, format_audit_report
 from transparent_scrape.core.pipeline import RunOptions, run_sources
 from transparent_scrape.sources import (
     appf,
@@ -18,6 +19,7 @@ from transparent_scrape.sources import (
     parltrack,
     wmm,
 )
+from transparent_scrape.sources.registry import SOURCE_REGISTRY, list_sources
 
 
 def _data_root(args: argparse.Namespace) -> Path:
@@ -197,20 +199,39 @@ def _cmd_ec_meetings_fetch(args: argparse.Namespace) -> None:
     print(f"wrote {path}")
 
 
+def _cmd_audit(args: argparse.Namespace) -> None:
+    root = _data_root(args)
+    report = audit_data_root(root, term=args.term)
+    if args.json:
+        import json
+
+        print(json.dumps(report, indent=2))
+    else:
+        print(format_audit_report(report))
+
+
+def _cmd_sources_list(args: argparse.Namespace) -> None:
+    specs = list_sources(status=args.status)
+    for spec in specs:
+        license_bit = f" [{spec.license_note}]" if spec.license_note else ""
+        print(f"{spec.id:18} {spec.status:6} {spec.title}{license_bit}")
+        print(f"{'':18} cli: {spec.cli}")
+        print(f"{'':18} parsed: {', '.join(spec.parsed_globs)}")
+        if args.verbose:
+            print()
+
+
 def _cmd_postprocess(args: argparse.Namespace) -> None:
     """Incremental add-ons after bulk scrape. Skips sources already on disk."""
     root = _data_root(args)
     parsed = root / "parsed"
     raw = root / "raw"
 
-    gaps = ep_api.audit_gaps(parsed, term=args.term)
+    report = audit_data_root(root, term=args.term)
+    gaps = report["gaps"]
     print("[tscrape] postprocess audit:")
-    print(f"  mep enrich gaps (no group): {gaps['mep_enrich_gaps']}")
-    print(f"  mep mandate backfill (optional): {gaps['mep_mandate_gaps']}")
-    print(f"  appf have: {gaps['appf_have']} missing: {gaps['appf_missing']}")
-    print(f"  opensanctions needed: {gaps['opensanctions']}")
-    print(f"  integrity_watch needed: {gaps['integrity_watch']}")
-    print(f"  conflict pdfs missing text: {gaps['conflict_pdfs_missing']}")
+    print(format_audit_report(report))
+    print("")
 
     patched = ep_api.patch_appf_links(parsed)
     if patched:
@@ -502,7 +523,7 @@ def main(argv: list[str] | None = None) -> None:
     p_pp.add_argument(
         "--conflict-pdfs",
         action="store_true",
-        help="download conflict PDFs missing text only (~10k rows, ~840 MB remaining)",
+        help="download conflict PDFs missing text only",
     )
     p_pp.add_argument(
         "--conflict-pdf-limit",
@@ -512,6 +533,24 @@ def main(argv: list[str] | None = None) -> None:
     )
     p_pp.add_argument("--no-pdf", action="store_true")
     p_pp.set_defaults(func=_cmd_postprocess)
+
+    p_audit = sub.add_parser("audit", help="show parsed data health for --out root")
+    p_audit.add_argument("--out", default="data")
+    p_audit.add_argument("--term", type=int, default=10)
+    p_audit.add_argument("--json", action="store_true", help="also print full JSON report")
+    p_audit.set_defaults(func=_cmd_audit)
+
+    p_sources = sub.add_parser("sources", help="list built-in source modules")
+    src_sub = p_sources.add_subparsers(dest="sources_cmd", required=True)
+    p_src_list = src_sub.add_parser("list")
+    p_src_list.add_argument(
+        "--status",
+        choices=("active", "probe", "heavy"),
+        default=None,
+        help="filter by module status",
+    )
+    p_src_list.add_argument("-v", "--verbose", action="store_true")
+    p_src_list.set_defaults(func=_cmd_sources_list)
 
     args = parser.parse_args(argv)
     args.func(args)

@@ -47,4 +47,7 @@ def data_layout(root: Path) -> dict[str, Path]:
         "parsed_appf": root / "parsed" / "appf",
         "parsed_ec": root / "parsed" / "ec_meetings",
         "parsed_declarations": root / "parsed" / "declarations",
+        "parsed_howtheyvote": root / "parsed" / "howtheyvote",
+        "parsed_parltrack": root / "parsed" / "parltrack",
+        "parsed_epdb": root / "parsed" / "epdb",
     }

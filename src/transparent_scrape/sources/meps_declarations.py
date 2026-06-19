@@ -145,7 +145,7 @@ def download_pdf(
     dest = raw_dir / f"{doc_id}.pdf"
 
     if skip_existing and dest.exists() and dest.stat().st_size > 100:
-        result["pdf_path"] = str(dest)
+        result["pdf_path"] = str(dest.resolve())
         result["pdf_url_used"] = pdf_url
     else:
         last_err: str | None = None
@@ -153,7 +153,7 @@ def download_pdf(
             try:
                 download(candidate, dest)
                 if dest.exists() and dest.read_bytes()[:4] == b"%PDF":
-                    result["pdf_path"] = str(dest)
+                    result["pdf_path"] = str(dest.resolve())
                     result["pdf_url_used"] = candidate
                     break
                 dest.unlink(missing_ok=True)
