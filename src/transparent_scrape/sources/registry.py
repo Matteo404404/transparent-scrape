@@ -13,6 +13,7 @@ class SourceSpec:
     parsed_globs: tuple[str, ...]
     license_note: str | None = None
     status: str = "active"  # active | probe | heavy
+    pack: str = "eu"  # bundled module pack (custom sources live in your repo)
 
 
 SOURCE_REGISTRY: tuple[SourceSpec, ...] = (
@@ -93,7 +94,10 @@ SOURCE_REGISTRY: tuple[SourceSpec, ...] = (
 )
 
 
-def list_sources(*, status: str | None = None) -> list[SourceSpec]:
-    if status is None:
-        return list(SOURCE_REGISTRY)
-    return [s for s in SOURCE_REGISTRY if s.status == status]
+def list_sources(*, status: str | None = None, pack: str | None = None) -> list[SourceSpec]:
+    out = list(SOURCE_REGISTRY)
+    if status is not None:
+        out = [s for s in out if s.status == status]
+    if pack is not None:
+        out = [s for s in out if s.pack == pack]
+    return out

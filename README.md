@@ -1,25 +1,13 @@
 # transparent-scrape
 
-**Modular fetch-and-parse toolkit for public transparency data.**
+**Fetch, parse, store public datasets.** Generic Python toolkit + CLI (`tscrape`).
 
-Python library + CLI (`tscrape`) that downloads official EU institutional sources, normalises them to JSON, and writes a predictable `raw/` + `parsed/` tree. No website, no editorial merge, no accusations. Downstream projects (dashboards, archives, research pipelines) consume the JSON.
+Downloads pages and APIs with retries and rate limits, keeps a predictable `raw/` + `parsed/` tree, exports JSON. No website, no database, no editorial layer.
 
-**Primary consumer today:** [eu-parl-observatory](https://github.com/Matteo404404/eu-parl-observatory) (EP transparency archive).
+**Bundled EU pack:** Parliament register, MEP data, etc. (used by [eu-parl-observatory](https://github.com/Matteo404404/eu-parl-observatory)).  
+**Your project:** import `transparent_scrape.core.*`, add your own modules (housing, markets, news). EU code is optional.
 
-**Design goal:** EU institutions first, but the **core layer is domain-agnostic** (HTTP, rate limits, storage, PDF text, keyword tags). New sources are added as small modules under `sources/`.
-
----
-
-## Why this exists
-
-Public transparency data is scattered across XML dumps, JSON APIs, XLSX reports, and PDF declarations. This package:
-
-1. **Fetches** with retries, rate limits, and a clear User-Agent
-2. **Parses** into stable JSON schemas
-3. **Separates** raw bytes from parsed facts (`data/raw/` vs `data/parsed/`)
-4. **Composes** sources via `tscrape run --sources ep,lobby,…` or Python `run_sources()`
-
-You bring interpretation and UI. This package brings reproducible ingestion.
+Full guide for non-EU use: **[docs/GENERIC.md](docs/GENERIC.md)**.
 
 ---
 
@@ -33,37 +21,50 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-**As a dependency** (local path or git URL):
-
 ```bash
-pip install -e "../transparent-scrape"
-# or when published:
-# pip install git+https://github.com/Matteo404404/transparent-scrape.git
+pip install -e "../transparent-scrape"   # from another repo
 ```
 
 Requires **Python 3.11+**.
 
 ---
 
-## Quick start
+## Quick start (any site)
 
 ```bash
-# Fast refresh: roster, lobby register, APPF, EC meetings (no heavy PDFs)
-tscrape run --out data --sources ep,lobby,appf,ec_meetings --no-pdf
+# one URL → file
+tscrape get "https://example.com/listings" --out data/raw/housing/page.html
 
-# Single source
-tscrape lobby fetch --out data
-tscrape lobby parse --out data
-
-# Conflict declarations (API metadata + optional PDF text)
-tscrape declarations fetch --out data --limit 50
-tscrape declarations refresh-pdfs --out data --limit 500
-
-# Incremental add-ons after a bulk run
-tscrape postprocess --out data --conflict-pdfs
+# JSON API
+tscrape get "https://api.example.com/prices" --json --out data/raw/market/prices.json
 ```
 
-Point `--out` at any directory (e.g. another repo's `data/` folder):
+```python
+from pathlib import Path
+from transparent_scrape import base_paths
+from transparent_scrape.core.http import get_text
+from transparent_scrape.core.html import parse_html, xpath_all, text_of
+from transparent_scrape.core.storage import save_parsed
+
+paths = base_paths(Path("data"))
+html = get_text("https://example.com/listings")
+doc = parse_html(html)
+# ... xpath your DOM, save_parsed(paths["parsed"], "housing/listings.json", {...})
+```
+
+Example module: [examples/scrape_listings.py](examples/scrape_listings.py).
+
+---
+
+## Quick start (EU pack)
+
+```bash
+tscrape run --out data --sources ep,lobby,appf,ec_meetings --no-pdf
+tscrape sources list --pack eu
+tscrape audit --out data
+```
+
+Point `--out` at another repo's `data/` folder:
 
 ```bash
 export DATA_ROOT="/path/to/eu-parl-observatory/data"
@@ -72,7 +73,7 @@ tscrape postprocess --out "$DATA_ROOT" --conflict-pdfs
 
 ---
 
-## Source modules (EU)
+## Source modules (EU pack)
 
 | Module | CLI | What it ingests |
 |--------|-----|-----------------|
@@ -89,41 +90,23 @@ tscrape postprocess --out "$DATA_ROOT" --conflict-pdfs
 | `epdb` | `tscrape epdb status` | Council/EP vote API probe |
 | `integrity_watch` | `tscrape integrity-watch status` | Integrity Watch datahub probe |
 
-**Inspect what you have:**
-
-```bash
-tscrape audit --out data
-tscrape sources list
-tscrape sources list --status probe
-```
-
 Full reference: [docs/MODULES.md](docs/MODULES.md).
 
 ---
 
-## Reusable core (for your own projects)
-
-Import primitives without EU-specific logic:
-
-```python
-from pathlib import Path
-from transparent_scrape.core.http import download, get_json, get_text
-from transparent_scrape.core.storage import save_json, save_parsed, update_manifest
-from transparent_scrape.core.rate_limit import RateLimiter
-from transparent_scrape.core.pdf import extract_pdf_text
-from transparent_scrape.core.tags import tag_text, TAG_RULES
-```
+## Core library
 
 | Component | Use for |
 |-----------|---------|
 | `core.http` | Retrying downloads, JSON GET, custom User-Agent |
-| `core.storage` | JSON IO, `parsed/manifest.json` bookkeeping |
+| `core.html` | Parse static HTML (lxml xpath) |
+| `core.storage` | JSON IO, `parsed/manifest.json` |
 | `core.rate_limit` | Polite scraping (`RateLimiter`) |
-| `core.pdf` | PDF text extraction via pdfplumber |
-| `core.tags` | Keyword tagging on free text (extend `TAG_RULES`) |
-| `core.config.data_layout` | Standard `raw/` / `parsed/` paths |
+| `core.pdf` | PDF text via pdfplumber |
+| `core.tags` | Keyword tagging on free text |
+| `core.paths.base_paths` | `{root, raw, parsed}` only |
 
-How to add a new source: [docs/EXTENDING.md](docs/EXTENDING.md).
+Add a source: [docs/EXTENDING.md](docs/EXTENDING.md) · [docs/GENERIC.md](docs/GENERIC.md).
 
 ---
 
@@ -131,23 +114,20 @@ How to add a new source: [docs/EXTENDING.md](docs/EXTENDING.md).
 
 ```text
 data/
-  raw/              # bytes as fetched (XML, PDF, XLSX, HTML)
+  raw/              # bytes as fetched
   parsed/           # normalised JSON
-    manifest.json   # last run metadata per source
+    manifest.json
 ```
 
-Convention details: [docs/DATA_LAYOUT.md](docs/DATA_LAYOUT.md).
+[docs/DATA_LAYOUT.md](docs/DATA_LAYOUT.md)
 
 ---
 
 ## What this package does **not** do
 
-- No criminal allegations or editorial scoring
-- No guaranteed completeness (sources are self-declared or API-limited)
-- No production database (filesystem JSON only)
-- Outside income is often **bands**, not exact euros (EP rules + WMM)
-
-Source URLs and attribution: [docs/SOURCES.md](docs/SOURCES.md).
+- Headless browser (JS-heavy SPAs need Playwright elsewhere)
+- Criminal allegations or editorial scoring (EU observatory adds curation downstream)
+- Guaranteed completeness or a production database
 
 ---
 
@@ -155,7 +135,7 @@ Source URLs and attribution: [docs/SOURCES.md](docs/SOURCES.md).
 
 ```bash
 pytest
-pytest -m live   # optional network integration
+pytest -m live   # optional network
 ```
 
 ---
@@ -164,16 +144,14 @@ pytest -m live   # optional network integration
 
 | Doc | Contents |
 |-----|----------|
-| [docs/README.md](docs/README.md) | Index |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, pipeline, boundaries |
-| [docs/MODULES.md](docs/MODULES.md) | Per-source CLI and outputs |
-| [docs/SOURCES.md](docs/SOURCES.md) | Official URLs and terms |
-| [docs/DATA_LAYOUT.md](docs/DATA_LAYOUT.md) | File naming conventions |
-| [docs/EXTENDING.md](docs/EXTENDING.md) | Add new fetchers |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | PR guidelines |
+| [docs/GENERIC.md](docs/GENERIC.md) | Housing, markets, any domain |
+| [docs/EXTENDING.md](docs/EXTENDING.md) | Add fetchers |
+| [docs/MODULES.md](docs/MODULES.md) | EU module CLI |
+| [docs/DATA_LAYOUT.md](docs/DATA_LAYOUT.md) | File naming |
+| [docs/SOURCES.md](docs/SOURCES.md) | EU official URLs |
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Institutional data remains subject to the original publishers' terms; always attribute the source register or API.
+MIT — see [LICENSE](LICENSE). Respect each publisher's terms and robots.txt.

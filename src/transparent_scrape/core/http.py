@@ -9,7 +9,7 @@ import httpx
 from transparent_scrape.core.rate_limit import ep_limiter, web_limiter
 
 DEFAULT_TIMEOUT = 120.0
-USER_AGENT = "transparent-scrape/0.1 (EU transparency research)"
+USER_AGENT = "transparent-scrape/0.3 (+https://github.com/Matteo404404/transparent-scrape)"
 
 
 def download(url: str, dest: Path, retries: int = 3, *, user_agent: str = USER_AGENT) -> Path:

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from transparent_scrape.core.paths import base_paths
+
 EP_API = "https://data.europarl.europa.eu/api/v2"
 EP_TERM_DEFAULT = 10
 
@@ -34,11 +36,10 @@ EPDB_API_BASE = "https://api.epdb.eu"
 
 
 def data_layout(root: Path) -> dict[str, Path]:
-    """Standard data/raw and data/parsed paths under root."""
-    return {
-        "root": root,
-        "raw": root / "raw",
-        "parsed": root / "parsed",
+    """Standard data/raw and data/parsed paths under root (+ EU convenience paths)."""
+    paths = base_paths(root)
+    paths.update(
+        {
         "raw_declarations": root / "raw" / "declarations",
         "raw_ep_profiles": root / "raw" / "ep_profiles",
         "parsed_meps": root / "parsed" / "meps",
@@ -50,4 +51,6 @@ def data_layout(root: Path) -> dict[str, Path]:
         "parsed_howtheyvote": root / "parsed" / "howtheyvote",
         "parsed_parltrack": root / "parsed" / "parltrack",
         "parsed_epdb": root / "parsed" / "epdb",
-    }
+        }
+    )
+    return paths

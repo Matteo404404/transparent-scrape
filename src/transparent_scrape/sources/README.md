@@ -1,5 +1,7 @@
 # Source modules
 
+**Bundled EU pack** (`pack=eu` in `registry.py`). Custom sources for housing, markets, etc. usually live in **your repo**; see [../docs/GENERIC.md](../docs/GENERIC.md).
+
 One Python file per public dataset. Each module should:
 
 1. Download to `raw/` (or call a JSON API)

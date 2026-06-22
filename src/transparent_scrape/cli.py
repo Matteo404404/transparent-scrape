@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from transparent_scrape.core.audit import audit_data_root, format_audit_report
+from transparent_scrape.core.http import USER_AGENT, download, get_json, get_text
 from transparent_scrape.core.pipeline import RunOptions, run_sources
+from transparent_scrape.core.storage import save_json, save_text
 from transparent_scrape.sources import (
     appf,
     ec_meetings,
@@ -199,19 +202,45 @@ def _cmd_ec_meetings_fetch(args: argparse.Namespace) -> None:
     print(f"wrote {path}")
 
 
+def _cmd_get(args: argparse.Namespace) -> None:
+    url = args.url
+    out = Path(args.out) if args.out else None
+    ua = args.user_agent or USER_AGENT
+
+    if args.binary:
+        dest = out or Path(url.rsplit("/", 1)[-1].split("?")[0] or "download.bin")
+        download(url, dest, user_agent=ua)
+        print(dest)
+        return
+
+    if args.json:
+        data = get_json(url, rate_limit=False)
+        if out:
+            save_json(out, data)
+            print(out)
+        else:
+            print(json.dumps(data, ensure_ascii=False, indent=2))
+        return
+
+    text = get_text(url, user_agent=ua)
+    if out:
+        save_text(out, text)
+        print(out)
+    else:
+        print(text)
+
+
 def _cmd_audit(args: argparse.Namespace) -> None:
     root = _data_root(args)
     report = audit_data_root(root, term=args.term)
     if args.json:
-        import json
-
         print(json.dumps(report, indent=2))
     else:
         print(format_audit_report(report))
 
 
 def _cmd_sources_list(args: argparse.Namespace) -> None:
-    specs = list_sources(status=args.status)
+    specs = list_sources(status=args.status, pack=args.pack)
     for spec in specs:
         license_bit = f" [{spec.license_note}]" if spec.license_note else ""
         print(f"{spec.id:18} {spec.status:6} {spec.title}{license_bit}")
@@ -350,8 +379,19 @@ def _cmd_run(args: argparse.Namespace) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(prog="tscrape", description="EU transparency scrapers")
+    parser = argparse.ArgumentParser(
+        prog="tscrape",
+        description="Fetch and parse public datasets (generic core + bundled EU modules)",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    p_get = sub.add_parser("get", help="fetch one URL to stdout or a file")
+    p_get.add_argument("url")
+    p_get.add_argument("--out", default=None, help="destination file path")
+    p_get.add_argument("--json", action="store_true", help="parse response as JSON")
+    p_get.add_argument("--binary", action="store_true", help="save raw bytes (PDF, csv.gz, etc.)")
+    p_get.add_argument("--user-agent", default=None)
+    p_get.set_defaults(func=_cmd_get)
 
     p_wmm = sub.add_parser("wmm", help="Where's My MEP")
     wmm_sub = p_wmm.add_subparsers(dest="wmm_cmd", required=True)
@@ -548,6 +588,11 @@ def main(argv: list[str] | None = None) -> None:
         choices=("active", "probe", "heavy"),
         default=None,
         help="filter by module status",
+    )
+    p_src_list.add_argument(
+        "--pack",
+        default=None,
+        help="filter bundled pack (default: all; built-in EU modules use pack=eu)",
     )
     p_src_list.add_argument("-v", "--verbose", action="store_true")
     p_src_list.set_defaults(func=_cmd_sources_list)

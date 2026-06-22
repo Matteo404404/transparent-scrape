@@ -4,18 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "transparent-scrape"
-version = "0.2.0"
-description = "Modular fetch-and-parse toolkit for public transparency data (EU institutions, extensible core)"
+version = "0.3.0"
+description = "Modular fetch-and-parse toolkit for public web data (generic core + bundled EU sources)"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Matteo" }]
 keywords = [
+    "scraping",
+    "web-scraping",
+    "open-data",
     "transparency",
     "lobbying",
     "european-parliament",
-    "open-data",
-    "scraping",
     "eu",
     "public-data",
 ]

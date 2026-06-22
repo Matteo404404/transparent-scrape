@@ -71,14 +71,11 @@ def fetch_and_parse(data_root: Path) -> Path:
 
 ## Non-EU datasets
 
-Same layout works for:
+Same layout works for housing listings, market APIs, national registers, CKAN portals, etc.
 
-- National lobbying registers (XML/CSV dump)
-- Open data portals (CKAN JSON API)
-- Bulk sanctions lists (CSV/FTM JSON)
-- Court or procurement publications (PDF + `core.pdf`)
+**Start here:** [GENERIC.md](GENERIC.md) (CLI `tscrape get`, `core/html`, example in `examples/`).
 
-Keep modules **focused**: one institution or one export per file.
+Keep modules **focused**: one site section or one API export per file. Fetch → raw → parse → parsed → manifest.
 
 ## What reviewers expect
 
