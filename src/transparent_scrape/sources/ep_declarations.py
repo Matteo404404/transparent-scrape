@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -21,8 +22,8 @@ PDF_LINK_RE = re.compile(
 
 
 def _name_slug(label: str) -> str:
-    # "Axel VOSS" -> "AXEL_VOSS"
-    parts = re.sub(r"[^a-zA-Z0-9\s-]", "", label).upper().split()
+    ascii = "".join(c for c in unicodedata.normalize("NFD", label) if unicodedata.category(c) != "Mn")
+    parts = re.sub(r"[^a-zA-Z0-9\s-]", "", ascii).upper().split()
     return "_".join(parts) if parts else "UNKNOWN"
 
 

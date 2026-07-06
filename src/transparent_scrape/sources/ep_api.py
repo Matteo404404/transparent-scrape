@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import re
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -173,21 +175,24 @@ def extract_membership_fields(
 
 
 def _mep_web_slug(family_name: str, given_name: str, label: str) -> str:
-    """EP site URLs need /{id}/{GIVEN_FAMILY}/ not /{id}/ alone."""
-    if given_name and family_name:
-        return f"{given_name}_{family_name}".upper().replace(" ", "_").replace("-", "_")
+    """ASCII slug for declarations path (GARCÍA → GARCIA)."""
     if label:
-        return label.upper().replace(" ", "_").replace("-", "_")
-    return ""
+        raw = label
+    elif given_name and family_name:
+        raw = f"{given_name} {family_name}"
+    else:
+        return ""
+    ascii = "".join(c for c in unicodedata.normalize("NFD", raw) if unicodedata.category(c) != "Mn")
+    parts = re.sub(r"[^a-zA-Z0-9\s-]", "", ascii).upper().split()
+    return "_".join(parts) if parts else ""
 
 
 def _mep_web_urls(person_id: str, family_name: str, given_name: str, label: str) -> tuple[str, str]:
+    # ponytail: profile is /{id}/ only; slug path 404s on many MEP pages
+    profile = f"https://www.europarl.europa.eu/meps/en/{person_id}"
     slug = _mep_web_slug(family_name, given_name, label)
-    if slug:
-        base = f"https://www.europarl.europa.eu/meps/en/{person_id}/{slug}"
-    else:
-        base = f"https://www.europarl.europa.eu/meps/en/{person_id}"
-    return base, f"{base}/declarations"
+    decl = f"{profile}/{slug}/declarations" if slug else f"{profile}/declarations"
+    return profile, decl
 
 
 def enrich_mep(person_id: str, term: int = EP_TERM_DEFAULT) -> dict[str, Any]:
